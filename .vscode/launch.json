@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "flutter_video_call",
+            "request": "launch",
+            "type": "dart"
+            // "args": ["-d", "web-server","--web-port", "8000"]
+        },
+        {
+            "name": "flutter_video_call (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_video_call (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

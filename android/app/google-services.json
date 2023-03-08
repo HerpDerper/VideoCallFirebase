@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1056719233812",
+    "project_id": "fluttervideocall-3f317",
+    "storage_bucket": "fluttervideocall-3f317.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056719233812:android:bc4e8d9040523c30125801",
+        "android_client_info": {
+          "package_name": "com.example.flutter_video_call"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1056719233812-qvrr9559tb09allitja8579fa4m5uos4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnGbnH52fxj-CCs_RMazI3N_qEDXS_oZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1056719233812-qvrr9559tb09allitja8579fa4m5uos4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
