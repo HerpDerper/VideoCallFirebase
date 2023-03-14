@@ -1,10 +1,13 @@
-import 'package:intl/intl.dart';
 import '../models/account.dart';
 import '../screens/auth_screen.dart';
+import '../screens/home_screen.dart';
+import '../utils/app_utils.dart';
+import '../utils/firebase_utils.dart';
+
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_video_call/utils/firebase_utils.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({Key? key}) : super(key: key);
@@ -19,21 +22,21 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   TextEditingController controllerPassword = TextEditingController();
   TextEditingController controllerBirthDate = TextEditingController();
 
-  Future registerNewUser(String email, String userName, String password, String dateBirth) async {
+  void _registerNewUser(String email, String userName, String password, String birthDate) async {
     try {
-      FirebaseUtils.setCollection('Accounts');
-      await FirebaseUtils.auth.createUserWithEmailAndPassword(email: email, password: password).then((value) async {
-        DocumentReference accountReference = FirebaseUtils.collection.doc(value.user!.uid);
-        Account account = Account(email: email, userName: userName, password: password, dateBirth: dateBirth);
-        await accountReference.set(account.toJson());
+      await FirebaseUtils.auth.createUserWithEmailAndPassword(email: email, password: password).then((newUser) {
+        Account account = Account(email: email, userName: userName, password: password, birthDate: birthDate);
+        FirebaseUtils.setCollection('Accounts');
+        FirebaseUtils.collection.doc(newUser.user!.uid).set(account.toJson());
+        AppUtils.switchScreen(const HomeScreen(), context);
       });
     } on FirebaseAuthException {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Current email is already in use', textAlign: TextAlign.center)));
+      AppUtils.showInfoMessage('Current email is already in use', context);
     }
   }
 
-  void showDatePickerDialog() async {
-    DateTime? pickedDate = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2101));
+  void _showDatePickerDialog() async {
+    DateTime? pickedDate = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
     if (pickedDate != null) {
       setState(() => controllerBirthDate.text = DateFormat('dd.MM.yyyy').format(pickedDate));
     }
@@ -59,7 +62,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
               ],
             ),
           ),
-          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AuthScreen())),
+          onTap: () => AppUtils.switchScreen(const AuthScreen(), context),
         ),
       ),
       backgroundColor: const Color.fromARGB(255, 38, 35, 55),
@@ -70,14 +73,14 @@ class RegistrationScreenState extends State<RegistrationScreen> {
             Column(
               children: [
                 Image.asset(
-                  "images/icon.png",
+                  'images/icon.png',
                   width: 67,
                   height: 67,
                 ),
                 const Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
-                    "Create an account",
+                    'Create an account',
                     style: TextStyle(
                       fontSize: 25,
                       color: Colors.white,
@@ -90,10 +93,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     controller: controllerEmail,
                     validator: ((value) {
                       if (value == null || value.isEmpty) {
-                        return "Email must not be empty";
+                        return 'Email must not be empty';
                       }
                       if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                        return "Email entered incorrectly";
+                        return 'Email entered incorrectly';
                       }
                       return null;
                     }),
@@ -114,7 +117,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       labelStyle: TextStyle(
                         color: Colors.white,
                       ),
-                      labelText: "Email",
+                      labelText: 'Email',
                     ),
                   ),
                 ),
@@ -124,10 +127,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     controller: controllerUsername,
                     validator: ((value) {
                       if (value == null || value.isEmpty) {
-                        return "Username must not be empty";
+                        return 'Username must not be empty';
                       }
                       if (value.length < 8 || value.length >= 16) {
-                        return "Username must be from 8 to 16 characters";
+                        return 'Username must be from 8 to 16 characters';
                       }
                       return null;
                     }),
@@ -148,7 +151,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       labelStyle: TextStyle(
                         color: Colors.white,
                       ),
-                      labelText: "Username",
+                      labelText: 'Username',
                     ),
                   ),
                 ),
@@ -158,10 +161,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     controller: controllerPassword,
                     validator: ((value) {
                       if (value == null || value.isEmpty) {
-                        return "Password must not be empty";
+                        return 'Password must not be empty';
                       }
                       if (!RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,16}$').hasMatch(value)) {
-                        return "Password must be from 8 to 16 characters, must contain letters, numbers and special characters";
+                        return 'Password must be from 8 to 16 characters, must contain letters, numbers and special characters';
                       }
                       return null;
                     }),
@@ -182,7 +185,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       labelStyle: TextStyle(
                         color: Colors.white,
                       ),
-                      labelText: "Password",
+                      labelText: 'Password',
                     ),
                   ),
                 ),
@@ -192,37 +195,33 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     controller: controllerBirthDate,
                     validator: ((value) {
                       if (value == null || value.isEmpty) {
-                        return "Birthdate must not be empty";
+                        return 'Birthdate must not be empty';
                       }
                       if (DateTime.parse(controllerBirthDate.text).isBefore(DateTime.now())) {
-                        return "Birthdate must be less than the current date";
+                        return 'Birthdate must be less than the current date';
                       }
                       return null;
                     }),
                     style: const TextStyle(
                       color: Colors.white,
                     ),
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.calendar_month),
-                        color: Colors.white,
-                        onPressed: () => showDatePickerDialog(),
-                      ),
-                      enabledBorder: const OutlineInputBorder(
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           color: Colors.white,
                         ),
                       ),
-                      focusedBorder: const OutlineInputBorder(
+                      focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           color: Colors.white,
                         ),
                       ),
-                      labelStyle: const TextStyle(
+                      labelStyle: TextStyle(
                         color: Colors.white,
                       ),
-                      labelText: "Birthdate",
+                      labelText: 'Birthdate',
                     ),
+                    onTap: () => _showDatePickerDialog(),
                   ),
                 ),
                 Padding(
@@ -234,10 +233,14 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
                         shape: const StadiumBorder(),
-                        textStyle: const TextStyle(fontSize: 16),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                        ),
                       ),
-                      onPressed: () => registerNewUser(controllerEmail.text, controllerUsername.text, controllerPassword.text, controllerBirthDate.text),
-                      child: const Text("Register"),
+                      onPressed: () => _registerNewUser(controllerEmail.text, controllerUsername.text, controllerPassword.text, controllerBirthDate.text),
+                      child: const Text(
+                        'Register',
+                      ),
                     ),
                   ),
                 ),

@@ -1,6 +1,9 @@
+import '../utils/app_utils.dart';
+import '../screens/home_screen.dart';
 import '../utils/firebase_utils.dart';
-import 'package:flutter/material.dart';
 import '../screens/registration_screen.dart';
+
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -14,15 +17,17 @@ class AuthScreenState extends State<AuthScreen> {
   TextEditingController controllerEmail = TextEditingController();
   TextEditingController controllerPassword = TextEditingController();
 
-  void authWithEmailAndPassword(String email, String password) async {
+  bool _obscureText = true;
+
+  void _authWithEmailAndPassword(String email, String password) async {
     try {
-      await FirebaseUtils.auth
-          .signInWithEmailAndPassword(email: email, password: password)
-          .then((value) => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegistrationScreen())));
+      await FirebaseUtils.auth.signInWithEmailAndPassword(email: email, password: password).then((value) => AppUtils.switchScreen(const HomeScreen(), context));
     } on FirebaseAuthException {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid email or password', textAlign: TextAlign.center)));
+      AppUtils.showInfoMessage('Invalid email or password', context);
     }
   }
+
+  void _togglePasswordVisibility() => setState(() => _obscureText = !_obscureText);
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,7 @@ class AuthScreenState extends State<AuthScreen> {
               ],
             ),
           ),
-          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RegistrationScreen())),
+          onTap: () => AppUtils.switchScreen(const RegistrationScreen(), context),
         ),
       ),
       backgroundColor: const Color.fromARGB(255, 38, 35, 55),
@@ -60,14 +65,14 @@ class AuthScreenState extends State<AuthScreen> {
             Column(
               children: [
                 Image.asset(
-                  "images/icon.png",
+                  'images/icon.png',
                   width: 67,
                   height: 67,
                 ),
                 const Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
-                    "Login",
+                    'Login',
                     style: TextStyle(
                       fontSize: 25,
                       color: Colors.white,
@@ -87,24 +92,37 @@ class AuthScreenState extends State<AuthScreen> {
                         borderSide: BorderSide(color: Colors.white),
                       ),
                       labelStyle: TextStyle(color: Colors.white),
-                      labelText: "Email",
+                      labelText: 'Email',
                     ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(30, 8, 30, 0),
                   child: TextFormField(
+                    obscureText: _obscureText,
                     controller: controllerPassword,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
+                    style: const TextStyle(
+                      color: Colors.white,
+                    ),
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        icon: _obscureText ? const Icon(Icons.visibility, color: Colors.white) : const Icon(Icons.visibility_off, color: Colors.white),
+                        onPressed: () => _togglePasswordVisibility(),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
+                      enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.white,
+                        ),
                       ),
-                      labelStyle: TextStyle(color: Colors.white),
-                      labelText: "Password",
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.white,
+                        ),
+                      ),
+                      labelStyle: const TextStyle(
+                        color: Colors.white,
+                      ),
+                      labelText: 'Password',
                     ),
                   ),
                 ),
@@ -117,10 +135,14 @@ class AuthScreenState extends State<AuthScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
                         shape: const StadiumBorder(),
-                        textStyle: const TextStyle(fontSize: 16),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                        ),
                       ),
-                      onPressed: () {},
-                      child: const Text("Login"),
+                      onPressed: () => _authWithEmailAndPassword(controllerEmail.text, controllerPassword.text),
+                      child: const Text(
+                        'Login',
+                      ),
                     ),
                   ),
                 ),

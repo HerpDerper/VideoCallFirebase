@@ -1,5 +1,8 @@
-import 'firebase_options.dart';
 import '../screens/auth_screen.dart';
+import '../screens/home_screen.dart';
+import '../utils/firebase_utils.dart';
+
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -14,9 +17,9 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AuthScreen(),
+      home: FirebaseUtils.currentUser == null ? const AuthScreen() : const HomeScreen(),
     );
   }
 }
