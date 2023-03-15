@@ -28,6 +28,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
         Account account = Account(email: email, userName: userName, password: password, birthDate: birthDate);
         FirebaseUtils.setCollection('Accounts');
         FirebaseUtils.collection.doc(newUser.user!.uid).set(account.toJson());
+
         AppUtils.switchScreen(const HomeScreen(), context);
       });
     } on FirebaseAuthException {

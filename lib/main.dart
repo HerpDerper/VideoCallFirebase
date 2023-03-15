@@ -19,7 +19,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: FirebaseUtils.currentUser == null ? const AuthScreen() : const HomeScreen(),
+      home: FirebaseUtils.auth.currentUser == null ? const AuthScreen() : const HomeScreen(),
     );
   }
 }

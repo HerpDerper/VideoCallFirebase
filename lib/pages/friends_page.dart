@@ -16,33 +16,33 @@ class FriendsPageState extends State<FriendsPage> {
     return FirebaseUtils.collection.snapshots().map((snapshot) => snapshot.docs.map((doc) => Account.fromJson(doc.data() as Map<String, dynamic>)).toList());
   }
 
-  Future<String> _getFriendsImage(String imageNmae) => FirebaseUtils.storage.ref().child(imageNmae).getDownloadURL();
+  Future<String> _getFriendsImage(String imageName) => FirebaseUtils.storage.ref().child(imageName).getDownloadURL();
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: StreamBuilder(
         stream: _getFriends(),
-        builder: (context, snapshotStream) {
-          if (snapshotStream.connectionState == ConnectionState.waiting) {
+        builder: (context, snapshotFriends) {
+          if (snapshotFriends.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator(
               color: Color.fromARGB(255, 123, 118, 155),
             );
           }
           return ListView(
-            children: snapshotStream.data!.map(
+            children: snapshotFriends.data!.map(
               (account) {
                 return Card(
                   color: Colors.deepPurple,
                   child: ListTile(
                     leading: FutureBuilder(
                       future: _getFriendsImage(account.image),
-                      builder: (context, snapshotFuture) {
+                      builder: (context, snapshotImage) {
                         return CircleAvatar(
                           radius: 30,
                           backgroundColor: Colors.deepPurple,
                           backgroundImage: NetworkImage(
-                            snapshotFuture.data.toString(),
+                            snapshotImage.data.toString(),
                           ),
                           child: CircleAvatar(
                             backgroundColor: Colors.transparent,
