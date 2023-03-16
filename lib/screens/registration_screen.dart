@@ -1,16 +1,12 @@
-import '../models/account.dart';
-import '../screens/auth_screen.dart';
-import '../screens/home_screen.dart';
-import '../utils/app_utils.dart';
-import '../utils/firebase_utils.dart';
-
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../utils/app_utils.dart';
+import '../screens/auth_screen.dart';
+import '../controllers/account_controller.dart';
 
 class RegistrationScreen extends StatefulWidget {
-  const RegistrationScreen({Key? key}) : super(key: key);
+  const RegistrationScreen({super.key});
 
   @override
   State<RegistrationScreen> createState() => RegistrationScreenState();
@@ -22,20 +18,6 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   TextEditingController controllerPassword = TextEditingController();
   TextEditingController controllerBirthDate = TextEditingController();
 
-  void _registerNewUser(String email, String userName, String password, String birthDate) async {
-    try {
-      await FirebaseUtils.auth.createUserWithEmailAndPassword(email: email, password: password).then((newUser) {
-        Account account = Account(email: email, userName: userName, password: password, birthDate: birthDate);
-        FirebaseUtils.setCollection('Accounts');
-        FirebaseUtils.collection.doc(newUser.user!.uid).set(account.toJson());
-
-        AppUtils.switchScreen(const HomeScreen(), context);
-      });
-    } on FirebaseAuthException {
-      AppUtils.showInfoMessage('Current email is already in use', context);
-    }
-  }
-
   void _showDatePickerDialog() async {
     DateTime? pickedDate = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
     if (pickedDate != null) {
@@ -46,6 +28,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 38, 35, 55),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 0, 15),
         child: GestureDetector(
@@ -66,7 +49,6 @@ class RegistrationScreenState extends State<RegistrationScreen> {
           onTap: () => AppUtils.switchScreen(const AuthScreen(), context),
         ),
       ),
-      backgroundColor: const Color.fromARGB(255, 38, 35, 55),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -91,16 +73,6 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
                   child: TextFormField(
-                    controller: controllerEmail,
-                    validator: ((value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email must not be empty';
-                      }
-                      if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                        return 'Email entered incorrectly';
-                      }
-                      return null;
-                    }),
                     style: const TextStyle(
                       color: Colors.white,
                     ),
@@ -120,21 +92,21 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       labelText: 'Email',
                     ),
+                    controller: controllerEmail,
+                    validator: ((value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email must not be empty';
+                      }
+                      if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                        return 'Email entered incorrectly';
+                      }
+                      return null;
+                    }),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(30, 8, 30, 0),
                   child: TextFormField(
-                    controller: controllerUsername,
-                    validator: ((value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Username must not be empty';
-                      }
-                      if (value.length < 8 || value.length >= 16) {
-                        return 'Username must be from 8 to 16 characters';
-                      }
-                      return null;
-                    }),
                     style: const TextStyle(
                       color: Colors.white,
                     ),
@@ -154,24 +126,21 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       labelText: 'Username',
                     ),
+                    controller: controllerUsername,
+                    validator: ((value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Username must not be empty';
+                      }
+                      if (value.length < 8 || value.length >= 16) {
+                        return 'Username must be from 8 to 16 characters';
+                      }
+                      return null;
+                    }),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(30, 8, 30, 0),
                   child: TextFormField(
-                    controller: controllerPassword,
-                    validator: ((value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password must not be empty';
-                      }
-                      if (!RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,16}$').hasMatch(value)) {
-                        return 'Password must be from 8 to 16 characters, must contain letters, numbers and special characters';
-                      }
-                      return null;
-                    }),
-                    style: const TextStyle(
-                      color: Colors.white,
-                    ),
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -188,21 +157,24 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       labelText: 'Password',
                     ),
+                    controller: controllerPassword,
+                    validator: ((value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password must not be empty';
+                      }
+                      if (!RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,16}$').hasMatch(value)) {
+                        return 'Password must be from 8 to 16 characters, must contain letters, numbers and special characters';
+                      }
+                      return null;
+                    }),
+                    style: const TextStyle(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(30, 8, 30, 0),
                   child: TextFormField(
-                    controller: controllerBirthDate,
-                    validator: ((value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Birthdate must not be empty';
-                      }
-                      if (DateTime.parse(controllerBirthDate.text).isBefore(DateTime.now())) {
-                        return 'Birthdate must be less than the current date';
-                      }
-                      return null;
-                    }),
                     style: const TextStyle(
                       color: Colors.white,
                     ),
@@ -222,6 +194,16 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       labelText: 'Birthdate',
                     ),
+                    controller: controllerBirthDate,
+                    validator: ((value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Birthdate must not be empty';
+                      }
+                      if (DateTime.parse(controllerBirthDate.text).isBefore(DateTime.now())) {
+                        return 'Birthdate must be less than the current date';
+                      }
+                      return null;
+                    }),
                     onTap: () => _showDatePickerDialog(),
                   ),
                 ),
@@ -238,10 +220,11 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                           fontSize: 16,
                         ),
                       ),
-                      onPressed: () => _registerNewUser(controllerEmail.text, controllerUsername.text, controllerPassword.text, controllerBirthDate.text),
                       child: const Text(
                         'Register',
                       ),
+                      onPressed: () => AccountController(context: context).createAccount(
+                          controllerEmail.text.toLowerCase().trim(), controllerUsername.text.trim(), controllerPassword.text, controllerBirthDate.text),
                     ),
                   ),
                 ),

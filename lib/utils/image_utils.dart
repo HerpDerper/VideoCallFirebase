@@ -11,5 +11,6 @@ class ImageUtils {
     if (croppedFile != null) {
       return File(croppedFile.path);
     }
+    return null;
   }
 }
