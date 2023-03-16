@@ -132,7 +132,7 @@ class AuthScreenState extends State<AuthScreen> {
                       child: const Text(
                         'Login',
                       ),
-                      onPressed: () => AccountController(context: context).signIn(controllerEmail.text.toLowerCase().toString(), controllerPassword.text),
+                      onPressed: () => AccountController(context: context).signIn(controllerEmail.text.toLowerCase().trim(), controllerPassword.text),
                     ),
                   ),
                 ),

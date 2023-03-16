@@ -14,15 +14,14 @@ class Account {
 
   Map<String, dynamic> toJson() => {'email': email, 'userName': userName, 'password': password, 'birthDate': birthDate, 'image': image, 'status': status};
 
-  static Account fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    final data = snapshot.data()!;
+  static Account fromSnapshot(DocumentSnapshot snapshot) {
     return Account(
         id: snapshot.id,
-        email: data['email'],
-        userName: data['userName'],
-        password: data['password'],
-        birthDate: data['birthDate'],
-        image: data['image'],
-        status: data['status']);
+        email: snapshot['email'],
+        userName: snapshot['userName'],
+        password: snapshot['password'],
+        birthDate: snapshot['birthDate'],
+        image: snapshot['image'],
+        status: snapshot['status']);
   }
 }

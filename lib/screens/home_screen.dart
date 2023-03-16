@@ -13,7 +13,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int currentIndex = 0;
   late AccountController controller;
 
@@ -21,6 +21,25 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      controller.updateStatus(true);
+      return;
+    }
+    if (state == AppLifecycleState.inactive) {
+      controller.updateStatus(false);
+      return;
+    }
   }
 
   @override
@@ -62,13 +81,14 @@ class HomeScreenState extends State<HomeScreen> {
               builder: (context, snapshotAccount) {
                 if (snapshotAccount.hasData) {
                   controller.account = snapshotAccount.data!;
+                  controller.updateStatus(true);
                 }
                 return FutureBuilder(
                   future: controller.getAccountImage(),
                   builder: (context, snapshotImage) {
                     return CircleAvatar(
                       radius: 15,
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: Colors.transparent,
                       backgroundImage: NetworkImage(
                         snapshotImage.data.toString(),
                       ),

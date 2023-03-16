@@ -31,10 +31,7 @@ class AccountController {
 
   Stream<Account> getAccount() {
     FirebaseUtils.setCollection('Accounts');
-    return FirebaseUtils.collection
-        .doc(FirebaseUtils.auth.currentUser!.uid)
-        .snapshots()
-        .map((snapshot) => Account.fromSnapshot(snapshot as DocumentSnapshot<Map<String, dynamic>>));
+    return FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).snapshots().map((snapshot) => Account.fromSnapshot(snapshot));
   }
 
   Future<String> getAccountImage() => FirebaseUtils.storage.ref().child(account!.image).getDownloadURL();
@@ -54,7 +51,7 @@ class AccountController {
     }
     try {
       account!.email = email;
-      FirebaseUtils.auth.currentUser!.updateEmail(email);
+      await FirebaseUtils.auth.currentUser!.updateEmail(email);
       FirebaseUtils.setCollection('Accounts');
       FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson()).then((value) {});
       AppUtils.switchScreen(const AuthScreen(), context);
@@ -64,13 +61,15 @@ class AccountController {
     }
   }
 
-  void updateStatus() async {
-    account!.status = !account!.status;
-    FirebaseUtils.setCollection('Accounts');
-    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
+  void updateStatus(bool status) {
+    if (FirebaseUtils.auth.currentUser != null) {
+      account!.status = status;
+      FirebaseUtils.setCollection('Accounts');
+      FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
+    }
   }
 
-  void updateUsername(String username, String password) async {
+  void updateUsername(String username, String password) {
     if (account!.password != password) {
       AppUtils.showInfoMessage('Invalid password', context);
       return;
@@ -96,13 +95,13 @@ class AccountController {
     }
     account!.password = newPassword;
     FirebaseUtils.setCollection('Accounts');
-    FirebaseUtils.auth.currentUser!.updatePassword(newPassword);
+    await FirebaseUtils.auth.currentUser!.updatePassword(newPassword);
     FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
     AppUtils.switchScreen(const AuthScreen(), context);
     AppUtils.showInfoMessage('Success', context);
   }
 
-  void deleteAccount() async {
+  void deleteAccount() {
     FirebaseUtils.setCollection('Accounts');
     FirebaseUtils.collection.doc(account!.id).delete();
     FirebaseUtils.auth.currentUser!.delete();
@@ -111,15 +110,15 @@ class AccountController {
 
   void signIn(String email, String password) async {
     try {
-      FirebaseUtils.auth.signInWithEmailAndPassword(email: email, password: password).then((value) => AppUtils.switchScreen(const HomeScreen(), context));
+      await FirebaseUtils.auth.signInWithEmailAndPassword(email: email, password: password).then((user) => AppUtils.switchScreen(const HomeScreen(), context));
     } on FirebaseAuthException {
       AppUtils.showInfoMessage('Invalid email or password', context);
     }
   }
 
-  void signOut() {
-    FirebaseUtils.auth.signOut();
-    AppUtils.switchScreen(const AuthScreen(), context);
+  void signOut() async {
+    updateStatus(false);
+    await FirebaseUtils.auth.signOut().then((user) => AppUtils.switchScreen(const AuthScreen(), context));
   }
 
   void _uploadFile(File image) async {

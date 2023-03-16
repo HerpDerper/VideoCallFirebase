@@ -47,7 +47,7 @@ class ProfilePageState extends State<ProfilePage> {
                   onTap: () => controller.updateImage(),
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Colors.transparent,
                     backgroundImage: NetworkImage(
                       snapshotImage.data.toString(),
                     ),
