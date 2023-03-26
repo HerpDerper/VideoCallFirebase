@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ChannelsPage extends StatefulWidget {
-  const ChannelsPage({super.key});
+  const ChannelsPage({super.key, required});
 
   @override
   State<ChannelsPage> createState() => ChannelsPageState();

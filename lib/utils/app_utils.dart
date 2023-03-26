@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_video_call/controllers/friend_request_controller.dart';
 
 import '../controllers/account_controller.dart';
 
@@ -18,7 +19,7 @@ class AppUtils {
     GlobalKey<FormState> key = GlobalKey();
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
           shape: RoundedRectangleBorder(
@@ -110,7 +111,7 @@ class AppUtils {
                             foregroundColor: Colors.white,
                             backgroundColor: const Color.fromARGB(255, 63, 57, 102),
                           ),
-                          onPressed: () async {
+                          onPressed: () {
                             if (!key.currentState!.validate()) return;
                             controller.updateEmail(controllerEmail.text.toLowerCase().trim(), controllerPassword.text);
                             Navigator.pop(context);
@@ -150,7 +151,7 @@ class AppUtils {
     GlobalKey<FormState> key = GlobalKey();
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
           shape: RoundedRectangleBorder(
@@ -242,7 +243,7 @@ class AppUtils {
                             foregroundColor: Colors.white,
                             backgroundColor: const Color.fromARGB(255, 63, 57, 102),
                           ),
-                          onPressed: () async {
+                          onPressed: () {
                             if (!key.currentState!.validate()) return;
                             controller.updateUsername(controllerUsername.text.trim(), controllerPassword.text);
                             Navigator.pop(context);
@@ -283,7 +284,7 @@ class AppUtils {
     GlobalKey<FormState> key = GlobalKey();
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
           shape: RoundedRectangleBorder(
@@ -406,7 +407,7 @@ class AppUtils {
                             foregroundColor: Colors.white,
                             backgroundColor: const Color.fromARGB(255, 63, 57, 102),
                           ),
-                          onPressed: () async {
+                          onPressed: () {
                             if (!key.currentState!.validate()) return;
                             controller.updatePassword(controllerOldPassword.text, controllerNewPassword.text, controllerNewPasswordSubmit.text);
                             Navigator.pop(context);
@@ -432,6 +433,149 @@ class AppUtils {
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showAccountInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color.fromARGB(255, 24, 19, 54),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                FutureBuilder(
+                  future: controller.getAccountImage(),
+                  builder: (context, snapshotImage) {
+                    if (snapshotImage.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.transparent,
+                        child: CircularProgressIndicator(
+                          color: Color.fromARGB(255, 123, 118, 155),
+                        ),
+                      );
+                    }
+                    return InkWell(
+                      onTap: () => controller.updateImage(),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: NetworkImage(
+                          snapshotImage.data.toString(),
+                        ),
+                        child: CircleAvatar(
+                          radius: 45,
+                          backgroundColor: Colors.transparent,
+                          child: Builder(
+                            builder: (context) {
+                              return Align(
+                                alignment: Alignment.bottomRight,
+                                child: CircleAvatar(
+                                  backgroundColor: controller.account!.status ? Colors.green : Colors.grey,
+                                  radius: 10,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Username',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        controller.account!.userName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Email',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        controller.account!.email,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.red,
+                        shape: const StadiumBorder(),
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                      child: const Text(
+                        'Close',
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Spacer(),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.green,
+                        shape: const StadiumBorder(),
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                      child: const Text(
+                        'Send friend request',
+                      ),
+                      onPressed: () {
+                        FriendRequestController(context: context).createFriendRequest(controller.account!);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                )
               ],
             ),
           ),

@@ -16,17 +16,9 @@ class AccountController {
 
   AccountController({required this.context, this.account});
 
-  void createAccount(String email, String userName, String password, String birthDate) async {
-    try {
-      await FirebaseUtils.auth.createUserWithEmailAndPassword(email: email, password: password).then((newUser) {
-        Account account = Account(email: email, userName: userName, password: password, birthDate: birthDate);
-        FirebaseUtils.setCollection('Accounts');
-        FirebaseUtils.collection.doc(newUser.user!.uid).set(account.toJson());
-        AppUtils.switchScreen(const HomeScreen(), context);
-      });
-    } on FirebaseAuthException {
-      AppUtils.showInfoMessage('Current email is already in use', context);
-    }
+  static Stream<Account> getAccountById(String accountId) {
+    FirebaseUtils.setCollection('Accounts');
+    return FirebaseUtils.collection.doc(accountId).snapshots().map((snapshot) => Account.fromSnapshot(snapshot));
   }
 
   Stream<Account> getAccount() {
@@ -35,6 +27,28 @@ class AccountController {
   }
 
   Future<String> getAccountImage() => FirebaseUtils.storage.ref().child(account!.image).getDownloadURL();
+
+  // Future<String> getAccountImageByName(String imageName) => FirebaseUtils.storage.ref().child(imageName).getDownloadURL();
+
+  Stream<List<Account>> searchAccounts(String userName) {
+    FirebaseUtils.setCollection('Accounts');
+    return FirebaseUtils.collection
+        .where('userName', isEqualTo: userName)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Account.fromSnapshot(doc)).toList());
+  }
+
+  void createAccount(String email, String userName, String password, String birthDate) async {
+    try {
+      await FirebaseUtils.auth.createUserWithEmailAndPassword(email: email, password: password).then((newUser) {
+        FirebaseUtils.setCollection('Accounts');
+        FirebaseUtils.collection.doc(newUser.user!.uid).set(Account(email: email, userName: userName, password: password, birthDate: birthDate).toJson());
+        AppUtils.switchScreen(const HomeScreen(), context);
+      });
+    } on FirebaseAuthException {
+      AppUtils.showInfoMessage('Current email is already in use', context);
+    }
+  }
 
   Future updateImage() async {
     final image = await ImageUtils.pickImage();
@@ -53,11 +67,10 @@ class AccountController {
       account!.email = email;
       await FirebaseUtils.auth.currentUser!.updateEmail(email);
       FirebaseUtils.setCollection('Accounts');
-      FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson()).then((value) {});
-      AppUtils.switchScreen(const AuthScreen(), context);
-      AppUtils.showInfoMessage('Success', context);
-    } on FirebaseAuthException {
-      AppUtils.showInfoMessage('Current email is already in use', context);
+      FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
+      FirebaseUtils.auth.signInWithEmailAndPassword(email: email, password: password).then((_) => AppUtils.showInfoMessage('Success', context));
+    } on FirebaseAuthException catch (e) {
+      AppUtils.showInfoMessage(e.message.toString(), context);
     }
   }
 
@@ -97,8 +110,7 @@ class AccountController {
     FirebaseUtils.setCollection('Accounts');
     await FirebaseUtils.auth.currentUser!.updatePassword(newPassword);
     FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
-    AppUtils.switchScreen(const AuthScreen(), context);
-    AppUtils.showInfoMessage('Success', context);
+    FirebaseUtils.auth.signInWithEmailAndPassword(email: account!.password, password: account!.email).then((_) => AppUtils.showInfoMessage('Success', context));
   }
 
   void deleteAccount() {
@@ -110,7 +122,7 @@ class AccountController {
 
   void signIn(String email, String password) async {
     try {
-      await FirebaseUtils.auth.signInWithEmailAndPassword(email: email, password: password).then((user) => AppUtils.switchScreen(const HomeScreen(), context));
+      await FirebaseUtils.auth.signInWithEmailAndPassword(email: email, password: password).then((_) => AppUtils.switchScreen(const HomeScreen(), context));
     } on FirebaseAuthException {
       AppUtils.showInfoMessage('Invalid email or password', context);
     }

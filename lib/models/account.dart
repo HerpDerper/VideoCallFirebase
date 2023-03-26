@@ -8,9 +8,17 @@ class Account {
   String birthDate;
   String image;
   bool status;
+  String aboutMe;
 
   Account(
-      {this.id, required this.email, required this.userName, required this.password, required this.birthDate, this.image = 'default.png', this.status = true});
+      {this.id,
+      required this.email,
+      required this.userName,
+      required this.password,
+      required this.birthDate,
+      this.image = 'dusa.gif',
+      this.status = true,
+      this.aboutMe = ''});
 
   Map<String, dynamic> toJson() => {'email': email, 'userName': userName, 'password': password, 'birthDate': birthDate, 'image': image, 'status': status};
 
