@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/account.dart';
 import '../utils/app_utils.dart';
@@ -21,14 +20,17 @@ class AccountController {
     return FirebaseUtils.collection.doc(accountId).snapshots().map((snapshot) => Account.fromSnapshot(snapshot));
   }
 
+  static Future<String> getAccountImageByName(String imageName) => FirebaseUtils.storage.ref().child(imageName).getDownloadURL();
+
   Stream<Account> getAccount() {
     FirebaseUtils.setCollection('Accounts');
-    return FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).snapshots().map((snapshot) => Account.fromSnapshot(snapshot));
+    return FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).snapshots().map((snapshot) {
+      account = Account.fromSnapshot(snapshot);
+      return account!;
+    });
   }
 
   Future<String> getAccountImage() => FirebaseUtils.storage.ref().child(account!.image).getDownloadURL();
-
-  // Future<String> getAccountImageByName(String imageName) => FirebaseUtils.storage.ref().child(imageName).getDownloadURL();
 
   Stream<List<Account>> searchAccounts(String userName) {
     FirebaseUtils.setCollection('Accounts');
@@ -75,11 +77,9 @@ class AccountController {
   }
 
   void updateStatus(bool status) {
-    if (FirebaseUtils.auth.currentUser != null) {
-      account!.status = status;
-      FirebaseUtils.setCollection('Accounts');
-      FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
-    }
+    account!.status = status;
+    FirebaseUtils.setCollection('Accounts');
+    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
   }
 
   void updateUsername(String username, String password) {
@@ -138,6 +138,6 @@ class AccountController {
     await FirebaseUtils.storage.ref().child(imageName).putFile(image);
     account!.image = imageName;
     FirebaseUtils.setCollection('Accounts');
-    FirebaseFirestore.instance.collection('Accounts').doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
+    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
   }
 }

@@ -12,11 +12,10 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  late AccountController controller;
+  late AccountController controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
 
   @override
   void initState() {
-    controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
     super.initState();
   }
 

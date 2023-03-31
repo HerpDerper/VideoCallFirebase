@@ -26,8 +26,6 @@ class FriendsPageState extends State<FriendsPage> {
     AppUtils(controller: AccountController(context: context, account: account)).showAccountInfoDialog(context);
   }
 
-  Future<String> _getFriendsImage(String imageName) => FirebaseUtils.storage.ref().child(imageName).getDownloadURL();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,7 +85,7 @@ class FriendsPageState extends State<FriendsPage> {
                           account.status ? 'Online' : 'Offline',
                         ),
                         leading: FutureBuilder(
-                          future: _getFriendsImage(account.image),
+                          future: AccountController.getAccountImageByName(account.image),
                           builder: (context, snapshotImage) {
                             if (snapshotImage.connectionState == ConnectionState.waiting) {
                               return const CircleAvatar(
@@ -118,8 +116,7 @@ class FriendsPageState extends State<FriendsPage> {
                             );
                           },
                         ),
-                        onTap: () => Navigator.push(
-                            context, DialogRoute(builder: (context) => ChatPage(accountId: account.id!, accountName: account.userName), context: context)),
+                        onTap: () => Navigator.push(context, DialogRoute(builder: (context) => ChatPage(account: account), context: context)),
                       ),
                     ),
                   );

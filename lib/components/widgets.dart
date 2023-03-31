@@ -1,24 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ChatWidgets {
-  static Widget messagesCard(i, message, time) {
-    bool check = i % 2 == 0;
+  static Widget messagesCard(bool check, String message, String time) {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (check) const Spacer(),
-          if (!check)
-            const CircleAvatar(
-              backgroundColor: Colors.grey,
-              radius: 10,
-              child: Icon(
-                Icons.person,
-                size: 13,
-                color: Colors.white,
-              ),
-            ),
           ConstrainedBox(
             constraints: const BoxConstraints(
               maxWidth: 250,
@@ -38,16 +27,6 @@ class ChatWidgets {
               ),
             ),
           ),
-          if (check)
-            const CircleAvatar(
-              backgroundColor: Colors.grey,
-              radius: 10,
-              child: Icon(
-                Icons.person,
-                size: 13,
-                color: Colors.white,
-              ),
-            ),
           if (!check) const Spacer(),
         ],
       ),
