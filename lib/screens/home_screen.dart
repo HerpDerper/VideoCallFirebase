@@ -104,10 +104,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 );
               },
             ),
-            /*Icon(
-              size: 30,
-              Icons.person_rounded,
-            ),*/
           ),
         ],
         onTap: (value) => setState(() => currentIndex = value),

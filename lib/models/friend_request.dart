@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FriendRequest {
   String? id;
-  String sender;
-  String receiver;
+  String sender, receiver;
 
   FriendRequest({this.id, required this.sender, required this.receiver});
 

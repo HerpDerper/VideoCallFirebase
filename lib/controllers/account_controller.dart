@@ -77,9 +77,8 @@ class AccountController {
   }
 
   void updateStatus(bool status) {
-    account!.status = status;
     FirebaseUtils.setCollection('Accounts');
-    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
+    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).update({'status': status});
   }
 
   void updateUsername(String username, String password) {

@@ -1,3 +1,5 @@
+import 'package:flutter_video_call/screens/video_call_screen.dart';
+import 'package:flutter_video_call/utils/app_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,12 +25,14 @@ class ChatPageState extends State<ChatPage> {
   TextEditingController controllerMessage = TextEditingController();
   String chatId = '';
 
+  void _beginCall() => AppUtils.switchScreen(VideoScreen(channelName: chatId, userName: widget.account.userName), context);
+
   void _submitMessage() {
     if (controllerMessage.text.isNotEmpty) {
       String dateSent = DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now());
       Message message = Message(dateSent: dateSent, text: controllerMessage.text, sender: FirebaseUtils.auth.currentUser!.uid);
       if (chatId == '') {
-        ChatController.createChat([widget.account.id!, FirebaseUtils.auth.currentUser!.uid], message);
+        ChatController.createChat(widget.account.userName, [widget.account.id!, FirebaseUtils.auth.currentUser!.uid], message);
       } else {
         MessageController.createMessage(chatId, message);
       }
@@ -76,6 +80,13 @@ class ChatPageState extends State<ChatPage> {
                 widget.account.status ? 'Online' : 'Offline',
               ),
             ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(
+                Icons.phone,
+              ),
+              onPressed: () => _beginCall(),
+            )
           ],
         ),
       ),
@@ -115,10 +126,10 @@ class ChatPageState extends State<ChatPage> {
                               );
                             }
                             return ListView(
-                              reverse: true,
+                              reverse: false,
                               children: snapshotMessages.data!.map(
                                 (message) {
-                                  return ChatWidgets.messagesCard(message.sender == FirebaseUtils.auth.currentUser!.uid, message.text, message.dateSent);
+                                  return ChatWidgets.messagesCard(message.sender == FirebaseUtils.auth.currentUser!.uid, message);
                                 },
                               ).toList(),
                             );

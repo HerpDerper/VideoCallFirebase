@@ -4,7 +4,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class FirebaseUtils {
   static FirebaseAuth auth = FirebaseAuth.instance;
-
   static FirebaseFirestore firestore = FirebaseFirestore.instance;
   static FirebaseStorage storage = FirebaseStorage.instance;
   static late CollectionReference collection;
