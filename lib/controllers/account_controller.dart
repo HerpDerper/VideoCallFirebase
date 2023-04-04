@@ -15,19 +15,16 @@ class AccountController {
 
   AccountController({required this.context, this.account});
 
-  static Stream<Account> getAccountById(String accountId) {
+  static Future<Account> getAccountById(String accountId) {
     FirebaseUtils.setCollection('Accounts');
-    return FirebaseUtils.collection.doc(accountId).snapshots().map((snapshot) => Account.fromSnapshot(snapshot));
+    return FirebaseUtils.collection.doc(accountId).snapshots().map((snapshot) => Account.fromSnapshot(snapshot)).first;
   }
 
   static Future<String> getAccountImageByName(String imageName) => FirebaseUtils.storage.ref().child(imageName).getDownloadURL();
 
-  Stream<Account> getAccount() {
+  Stream<Account> getMyAccount() {
     FirebaseUtils.setCollection('Accounts');
-    return FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).snapshots().map((snapshot) {
-      account = Account.fromSnapshot(snapshot);
-      return account!;
-    });
+    return FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).snapshots().map((snapshot) => account = Account.fromSnapshot(snapshot));
   }
 
   Future<String> getAccountImage() => FirebaseUtils.storage.ref().child(account!.image).getDownloadURL();
@@ -117,6 +114,15 @@ class AccountController {
     FirebaseUtils.collection.doc(account!.id).delete();
     FirebaseUtils.auth.currentUser!.delete();
     AppUtils.switchScreen(const AuthScreen(), context);
+  }
+
+  void deleteFriend(String friendId) async {
+    FirebaseUtils.setCollection('Accounts');
+    Account friendAccount = Account.fromSnapshot(await FirebaseUtils.collection.doc(friendId).get());
+    friendAccount.friends.remove(FirebaseUtils.auth.currentUser!.uid);
+    account!.friends.remove(friendId);
+    FirebaseUtils.collection.doc(friendId).set(friendAccount.toJson());
+    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(friendAccount.toJson());
   }
 
   void signIn(String email, String password) async {

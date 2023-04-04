@@ -4,11 +4,6 @@ import '../models/message.dart';
 import '../utils/firebase_utils.dart';
 
 class MessageController {
-  Stream<Message> getMessageById(String chatId, String messageId) {
-    FirebaseUtils.setCollection('Chats');
-    return FirebaseUtils.collection.doc(chatId).collection('Messages').doc().snapshots().map((snapshot) => Message.fromSnapshot(snapshot));
-  }
-
   static Stream<List<Message>> getMessages(QueryDocumentSnapshot? querySnapshot) {
     return querySnapshot!.reference
         .collection('Messages')
@@ -22,7 +17,7 @@ class MessageController {
     FirebaseUtils.collection.doc(chatId).collection('Messages').add(message.toJson());
   }
 
-  static void editMessage(Message message) {
+  static void updateMessage(Message message) {
     FirebaseUtils.setCollection('Chats');
     message.isEdited = true;
     FirebaseUtils.collection.doc().collection('Messages').doc(message.id).set(message.toJson());

@@ -1,13 +1,12 @@
-import 'package:flutter_video_call/screens/video_call_screen.dart';
-import 'package:flutter_video_call/utils/app_utils.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/account.dart';
 import '../models/message.dart';
+import '../utils/app_utils.dart';
 import '../components/widgets.dart';
 import '../utils/firebase_utils.dart';
+import '../screens/video_call_screen.dart';
 import '../controllers/chat_controller.dart';
 import '../controllers/account_controller.dart';
 import '../controllers/message_controller.dart';
@@ -25,17 +24,9 @@ class ChatPageState extends State<ChatPage> {
   TextEditingController controllerMessage = TextEditingController();
   String chatId = '';
 
-  void _beginCall() => AppUtils.switchScreen(VideoScreen(channelName: chatId, userName: widget.account.userName), context);
-
   void _submitMessage() {
     if (controllerMessage.text.isNotEmpty) {
-      String dateSent = DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now());
-      Message message = Message(dateSent: dateSent, text: controllerMessage.text, sender: FirebaseUtils.auth.currentUser!.uid);
-      if (chatId == '') {
-        ChatController.createChat(widget.account.userName, [widget.account.id!, FirebaseUtils.auth.currentUser!.uid], message);
-      } else {
-        MessageController.createMessage(chatId, message);
-      }
+      MessageController.createMessage(chatId, Message(dateSent: DateTime.now(), text: controllerMessage.text, sender: FirebaseUtils.auth.currentUser!.uid));
       controllerMessage.clear();
     }
   }
@@ -76,7 +67,10 @@ class ChatPageState extends State<ChatPage> {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w300,
+                ),
                 widget.account.status ? 'Online' : 'Offline',
               ),
             ),
@@ -85,7 +79,7 @@ class ChatPageState extends State<ChatPage> {
               icon: const Icon(
                 Icons.phone,
               ),
-              onPressed: () => _beginCall(),
+              onPressed: () => AppUtils.switchScreen(VideoScreen(channelName: chatId, userName: widget.account.userName), context),
             )
           ],
         ),
@@ -106,53 +100,49 @@ class ChatPageState extends State<ChatPage> {
                 stream: FirebaseUtils.collection.snapshots(),
                 builder: (context, snapshotChats) {
                   if (snapshotChats.hasData) {
-                    if (snapshotChats.data!.docs.isNotEmpty) {
-                      List<QueryDocumentSnapshot?> chatList = snapshotChats.data!.docs
-                          .where((field) => field['accounts'][0] == widget.account.id && field['accounts'][1] == FirebaseUtils.auth.currentUser!.uid)
-                          .toList();
-                      QueryDocumentSnapshot? data = chatList.isNotEmpty ? chatList.first : null;
-                      if (data != null) {
-                        chatId = data.id;
-                      }
-                      if (data != null) {
-                        return StreamBuilder(
-                          stream: MessageController.getMessages(chatList.first),
-                          builder: (context, snapshotMessages) {
-                            if (!snapshotMessages.hasData) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  color: Color.fromARGB(255, 123, 118, 155),
-                                ),
-                              );
-                            }
+                    List<QueryDocumentSnapshot?> chatList = snapshotChats.data!.docs
+                        .where((field) => field['accounts'][0] == widget.account.id && field['accounts'][1] == FirebaseUtils.auth.currentUser!.uid)
+                        .toList();
+                    QueryDocumentSnapshot? data = chatList.isNotEmpty ? chatList.first : null;
+                    if (data == null) {
+                      ChatController.createChat(widget.account.userName, [widget.account.id!, FirebaseUtils.auth.currentUser!.uid]);
+                    }
+                    chatId = data!.id;
+                    return StreamBuilder(
+                      stream: MessageController.getMessages(chatList.first),
+                      builder: (context, snapshotMessages) {
+                        if (snapshotMessages.hasData) {
+                          if (snapshotMessages.data!.isNotEmpty) {
                             return ListView(
-                              reverse: false,
+                              reverse: true,
                               children: snapshotMessages.data!.map(
                                 (message) {
                                   return ChatWidgets.messagesCard(message.sender == FirebaseUtils.auth.currentUser!.uid, message);
                                 },
                               ).toList(),
                             );
-                          },
-                        );
-                      } else {
+                          } else {
+                            return const Center(
+                              child: Text(
+                                'No messages found',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
+                          }
+                        }
                         return const Center(
-                          child: Text(
-                            'No messages found',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.white,
-                            ),
+                          child: CircularProgressIndicator(
+                            color: Color.fromARGB(255, 123, 118, 155),
                           ),
                         );
-                      }
-                    } else {
-                      return Container();
-                    }
-                  } else {
-                    return Container();
+                      },
+                    );
                   }
+                  return Container();
                 },
               ),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_video_call/controllers/friend_request_controller.dart';
 
 import '../controllers/account_controller.dart';
+import '../controllers/friend_request_controller.dart';
 
 class AppUtils {
   AccountController controller;
@@ -13,12 +13,12 @@ class AppUtils {
 
   static void switchScreen(Widget screen, BuildContext context) => Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
 
-  void showEditEmailDialog(BuildContext context) {
+  void showEditEmailDialog() {
     TextEditingController controllerEmail = TextEditingController();
     TextEditingController controllerPassword = TextEditingController();
     GlobalKey<FormState> key = GlobalKey();
     showDialog(
-      context: context,
+      context: controller.context,
       builder: (context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
@@ -145,12 +145,12 @@ class AppUtils {
     );
   }
 
-  void showEditUsernameDialog(BuildContext context) {
+  void showEditUsernameDialog() {
     TextEditingController controllerUsername = TextEditingController();
     TextEditingController controllerPassword = TextEditingController();
     GlobalKey<FormState> key = GlobalKey();
     showDialog(
-      context: context,
+      context: controller.context,
       builder: (context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
@@ -277,13 +277,13 @@ class AppUtils {
     );
   }
 
-  void showEditPasswordDialog(BuildContext context) {
+  void showEditPasswordDialog() {
     TextEditingController controllerOldPassword = TextEditingController();
     TextEditingController controllerNewPassword = TextEditingController();
     TextEditingController controllerNewPasswordSubmit = TextEditingController();
     GlobalKey<FormState> key = GlobalKey();
     showDialog(
-      context: context,
+      context: controller.context,
       builder: (context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
@@ -441,9 +441,9 @@ class AppUtils {
     );
   }
 
-  void showAccountInfoDialog(BuildContext context) {
+  void showFriendAddDialog() {
     showDialog(
-      context: context,
+      context: controller.context,
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: const Color.fromARGB(255, 24, 19, 54),
@@ -548,7 +548,7 @@ class AppUtils {
                         backgroundColor: Colors.red,
                         shape: const StadiumBorder(),
                         textStyle: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                         ),
                       ),
                       child: const Text(
@@ -563,7 +563,7 @@ class AppUtils {
                         backgroundColor: Colors.green,
                         shape: const StadiumBorder(),
                         textStyle: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                         ),
                       ),
                       child: const Text(
@@ -572,10 +572,118 @@ class AppUtils {
                       onPressed: () {
                         FriendRequestController(context: context).createFriendRequest(controller.account!);
                         Navigator.pop(context);
+                        AppUtils.showInfoMessage('Request was send', context);
                       },
                     ),
                   ],
                 )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showAccountInfoDialog() {
+    showDialog(
+      context: controller.context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color.fromARGB(255, 24, 19, 54),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                FutureBuilder(
+                  future: controller.getAccountImage(),
+                  builder: (context, snapshotImage) {
+                    if (snapshotImage.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.transparent,
+                        child: CircularProgressIndicator(
+                          color: Color.fromARGB(255, 123, 118, 155),
+                        ),
+                      );
+                    }
+                    return InkWell(
+                      onTap: () => controller.updateImage(),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: NetworkImage(
+                          snapshotImage.data.toString(),
+                        ),
+                        child: CircleAvatar(
+                          radius: 45,
+                          backgroundColor: Colors.transparent,
+                          child: Builder(
+                            builder: (context) {
+                              return Align(
+                                alignment: Alignment.bottomRight,
+                                child: CircleAvatar(
+                                  backgroundColor: controller.account!.status ? Colors.green : Colors.grey,
+                                  radius: 10,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Username',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        controller.account!.userName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Email',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        controller.account!.email,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

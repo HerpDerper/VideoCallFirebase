@@ -1,12 +1,10 @@
-import 'package:flutter_video_call/models/message.dart';
-
 import '../models/chat.dart';
 import '../utils/firebase_utils.dart';
 
 class ChatController {
-  static void createChat(String name, List<String> accounts, Message message) {
+  static void createChat(String name, List<String> accounts) {
     FirebaseUtils.setCollection('Chats');
-    FirebaseUtils.collection.add(Chat(name: name, accounts: accounts).toJson()).then((doc) => doc.collection('Messages').add(message.toJson()));
+    FirebaseUtils.collection.add(Chat(accounts: accounts).toJson());
   }
 
   static void deleteChat(String chatId) {

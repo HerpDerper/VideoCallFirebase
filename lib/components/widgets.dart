@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../models/message.dart';
 
@@ -19,13 +20,30 @@ class ChatWidgets {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: check ? Colors.indigo.shade300 : Colors.grey.shade300,
+                color: check ? Colors.deepPurpleAccent.shade700 : Colors.purple.shade900,
               ),
-              child: Text(
-                message.isEdited ? '${message.text}\n${message.dateSent} Edited' : '${message.text}\n${message.dateSent}',
-                style: TextStyle(
-                  color: check ? Colors.white : Colors.black,
-                ),
+              child: Column(
+                crossAxisAlignment: check ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    message.text,
+                    style: const TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 3),
+                  ),
+                  Text(
+                    message.isEdited
+                        ? '${DateFormat('dd.MM.yyyy HH:mm').format(message.dateSent)}\nEdt'
+                        : DateFormat('dd.MM.yyyy HH:mm').format(message.dateSent),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

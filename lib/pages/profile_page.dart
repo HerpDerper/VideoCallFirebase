@@ -15,14 +15,9 @@ class ProfilePageState extends State<ProfilePage> {
   late AccountController controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: controller.getAccount(),
+      stream: controller.getMyAccount(),
       builder: (context, snapshotAccount) {
         if (snapshotAccount.hasData) {
           controller.account = snapshotAccount.data!;
@@ -109,7 +104,7 @@ class ProfilePageState extends State<ProfilePage> {
                               child: const Text(
                                 'Edit',
                               ),
-                              onPressed: () => AppUtils(controller: controller).showEditUsernameDialog(context),
+                              onPressed: () => AppUtils(controller: controller).showEditUsernameDialog(),
                             ),
                           ],
                         ),
@@ -147,7 +142,7 @@ class ProfilePageState extends State<ProfilePage> {
                               child: const Text(
                                 'Edit',
                               ),
-                              onPressed: () => AppUtils(controller: controller).showEditEmailDialog(context),
+                              onPressed: () => AppUtils(controller: controller).showEditEmailDialog(),
                             ),
                           ],
                         ),
@@ -163,7 +158,7 @@ class ProfilePageState extends State<ProfilePage> {
                           child: const Text(
                             'Change password',
                           ),
-                          onPressed: () => AppUtils(controller: controller).showEditPasswordDialog(context),
+                          onPressed: () => AppUtils(controller: controller).showEditPasswordDialog(),
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(

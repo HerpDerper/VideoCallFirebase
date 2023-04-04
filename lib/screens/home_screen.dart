@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
+
 import '../models/account.dart';
 import '../pages/profile_page.dart';
 import '../pages/friends_page.dart';
 import '../pages/channels_page.dart';
 import '../controllers/account_controller.dart';
-
-import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -76,7 +76,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           BottomNavigationBarItem(
             label: '',
             icon: StreamBuilder(
-              stream: controller.getAccount(),
+              stream: controller.getMyAccount(),
               builder: (context, snapshotAccount) {
                 if (snapshotAccount.hasData) {
                   controller.account = snapshotAccount.data;
@@ -96,7 +96,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         backgroundColor: Colors.transparent,
                         child: Align(
                           alignment: Alignment.bottomRight,
-                          child: CircleAvatar(backgroundColor: controller.account!.status ? Colors.green : Colors.grey, radius: 3),
+                          child: CircleAvatar(
+                            backgroundColor: controller.account!.status ? Colors.green : Colors.grey,
+                            radius: 3,
+                          ),
                         ),
                       ),
                     );
