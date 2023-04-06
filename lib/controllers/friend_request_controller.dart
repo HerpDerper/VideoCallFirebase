@@ -25,7 +25,7 @@ class FriendRequestController {
         .map((snapshot) => snapshot.docs.map((doc) => FriendRequest.fromSnapshot(doc)).toList());
   }
 
-  static Stream<Account> getAccountFromRequest(FriendRequest friendRequest) {
+  static Stream<Account> getAccountFromFriendRequest(FriendRequest friendRequest) {
     FirebaseUtils.setCollection('Accounts');
     return AccountController.getAccountById(friendRequest.receiver).asStream();
   }

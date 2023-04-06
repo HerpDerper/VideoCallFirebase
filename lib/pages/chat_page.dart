@@ -26,7 +26,9 @@ class ChatPageState extends State<ChatPage> {
 
   void _submitMessage() {
     if (controllerMessage.text.isNotEmpty) {
-      MessageController.createMessage(chatId, Message(dateSent: DateTime.now(), text: controllerMessage.text, sender: FirebaseUtils.auth.currentUser!.uid));
+      Message message = Message(dateSent: DateTime.now(), text: controllerMessage.text, sender: FirebaseUtils.auth.currentUser!.uid);
+      MessageController.createMessage(chatId, message);
+      ChatController.updateChat(chatId, message);
       controllerMessage.clear();
     }
   }
@@ -110,7 +112,7 @@ class ChatPageState extends State<ChatPage> {
                         .toList();
                     QueryDocumentSnapshot? data = chatList.isNotEmpty ? chatList.first : null;
                     if (data == null) {
-                      ChatController.createChat(widget.account.userName, [widget.account.id!, FirebaseUtils.auth.currentUser!.uid]);
+                      ChatController.createChat([widget.account.id!, FirebaseUtils.auth.currentUser!.uid]);
                       return Container();
                     }
                     chatId = data.id;

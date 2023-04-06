@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../models/account.dart';
 import '../utils/app_utils.dart';
 import '../controllers/account_controller.dart';
 import '../controllers/friend_request_controller.dart';
@@ -13,8 +12,6 @@ class FriendRequestsPage extends StatefulWidget {
 }
 
 class FriendRequestsPageState extends State<FriendRequestsPage> {
-  late AccountController controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,11 +19,11 @@ class FriendRequestsPageState extends State<FriendRequestsPage> {
       body: Center(
         child: StreamBuilder(
           stream: FriendRequestController.getFriendRequests(),
-          builder: (context, snapshotChats) {
-            if (!snapshotChats.hasData) {
+          builder: (context, snapshotFriendRequests) {
+            if (!snapshotFriendRequests.hasData) {
               return Container();
             }
-            if (snapshotChats.data!.isEmpty) {
+            if (snapshotFriendRequests.data!.isEmpty) {
               return const Center(
                 child: Text(
                   'No new friend requests',
@@ -38,16 +35,16 @@ class FriendRequestsPageState extends State<FriendRequestsPage> {
                 ),
               );
             }
-            if (snapshotChats.connectionState == ConnectionState.waiting) {
+            if (snapshotFriendRequests.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator(
                 color: Color.fromARGB(255, 123, 118, 155),
               );
             }
             return ListView(
-              children: snapshotChats.data!.map(
+              children: snapshotFriendRequests.data!.map(
                 (friendRequest) {
                   return StreamBuilder(
-                    stream: FriendRequestController.getAccountFromRequest(friendRequest),
+                    stream: FriendRequestController.getAccountFromFriendRequest(friendRequest),
                     builder: (context, snapshotAccount) {
                       if (!snapshotAccount.hasData) {
                         return Container();

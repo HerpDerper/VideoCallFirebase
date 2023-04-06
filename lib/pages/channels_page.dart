@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_video_call/utils/firebase_utils.dart';
 
 import 'chat_page.dart';
 import '../utils/app_utils.dart';
@@ -44,6 +45,10 @@ class ChannelsPageState extends State<ChannelsPage> {
             return ListView(
               children: snapshotChats.data!.map(
                 (chat) {
+                  if (!chat.accounts.contains(FirebaseUtils.auth.currentUser!.uid)) {
+                    return Container();
+                  }
+
                   return StreamBuilder(
                     stream: ChatController.getAccountFromChat(chat),
                     builder: (context, snapshotAccount) {
