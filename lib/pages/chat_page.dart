@@ -32,8 +32,13 @@ class ChatPageState extends State<ChatPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
     FirebaseUtils.setCollection('Chats');
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 38, 35, 55),
       appBar: AppBar(
@@ -101,13 +106,14 @@ class ChatPageState extends State<ChatPage> {
                 builder: (context, snapshotChats) {
                   if (snapshotChats.hasData) {
                     List<QueryDocumentSnapshot?> chatList = snapshotChats.data!.docs
-                        .where((field) => field['accounts'][0] == widget.account.id && field['accounts'][1] == FirebaseUtils.auth.currentUser!.uid)
+                        .where((field) => field['accounts'].contains(widget.account.id) && field['accounts'].contains(FirebaseUtils.auth.currentUser!.uid))
                         .toList();
                     QueryDocumentSnapshot? data = chatList.isNotEmpty ? chatList.first : null;
                     if (data == null) {
                       ChatController.createChat(widget.account.userName, [widget.account.id!, FirebaseUtils.auth.currentUser!.uid]);
+                      return Container();
                     }
-                    chatId = data!.id;
+                    chatId = data.id;
                     return StreamBuilder(
                       stream: MessageController.getMessages(chatList.first),
                       builder: (context, snapshotMessages) {

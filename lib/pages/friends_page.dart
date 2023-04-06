@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/account.dart';
+import '../pages/chat_page.dart';
 import '../utils/app_utils.dart';
 import '../utils/firebase_utils.dart';
 import '../controllers/account_controller.dart';
@@ -14,20 +15,8 @@ class FriendsPage extends StatefulWidget {
 }
 
 class FriendsPageState extends State<FriendsPage> {
+  TextEditingController controllerUsername = TextEditingController();
   late AccountController controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
-
-  Stream<List<Account>> _getFriends() {
-    FirebaseUtils.setCollection('Accounts');
-    StreamController<List<Account>> streamController = StreamController.broadcast();
-    List<Account> friendsList = [];
-    for (String friendId in controller.account!.friends) {
-      AccountController.getAccountById(friendId).then((acc) {
-        friendsList.add(acc);
-        streamController.sink.add(friendsList);
-      });
-    }
-    return streamController.stream;
-  }
 
   void searchNewFriend(String userName) async {
     FirebaseUtils.setCollection('Accounts');
@@ -52,12 +41,19 @@ class FriendsPageState extends State<FriendsPage> {
           height: 40,
           child: Center(
             child: TextField(
+              controller: controllerUsername,
               style: const TextStyle(
                 color: Colors.white,
               ),
               decoration: InputDecoration(
+                hintText: 'Search new friend',
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.purple.shade800,
+                  ),
+                ),
                 hintStyle: const TextStyle(
-                  color: Colors.grey,
+                  color: Colors.white70,
                 ),
                 prefixIcon: const Icon(
                   Icons.search,
@@ -66,7 +62,7 @@ class FriendsPageState extends State<FriendsPage> {
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.add),
                   color: Colors.white,
-                  onPressed: () {},
+                  onPressed: () => searchNewFriend(controllerUsername.text),
                 ),
               ),
               onSubmitted: (userName) => searchNewFriend(userName),
@@ -80,85 +76,102 @@ class FriendsPageState extends State<FriendsPage> {
           builder: (context, snapshotAccount) {
             if (snapshotAccount.hasData) {
               controller.account = snapshotAccount.data!;
-              return StreamBuilder(
-                stream: _getFriends(),
-                builder: (context, snapshotFriends) {
-                  if (snapshotFriends.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator(
-                      color: Color.fromARGB(255, 123, 118, 155),
-                    );
-                  }
-                  return ListView(
-                    children: snapshotFriends.data!.map(
-                      (account) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                          child: Card(
-                            color: Colors.deepPurple,
-                            child: ListTile(
-                              textColor: Colors.white,
-                              iconColor: Colors.white,
-                              trailing: PopupMenuButton(
-                                tooltip: 'Actions',
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    child: const Text(
-                                      'Delete',
-                                    ),
-                                    onTap: () => controller.deleteFriend(account.id!),
+            }
+            return StreamBuilder(
+              stream: controller.getFriends(),
+              builder: (context, snapshotFriends) {
+                if (!snapshotFriends.hasData) {
+                  return const Center(
+                    child: Text(
+                      'No friends found',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                }
+                if (snapshotFriends.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator(
+                    color: Color.fromARGB(255, 123, 118, 155),
+                  );
+                }
+                return ListView(
+                  children: snapshotFriends.data!.map(
+                    (account) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                        child: Card(
+                          color: Colors.deepPurple,
+                          child: ListTile(
+                            textColor: Colors.white,
+                            iconColor: Colors.white,
+                            trailing: PopupMenuButton(
+                              tooltip: 'Actions',
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  child: const Text(
+                                    'Write message',
                                   ),
-                                ],
-                              ),
-                              title: Text(
-                                account.userName,
-                              ),
-                              subtitle: Text(
-                                style: const TextStyle(color: Colors.grey),
-                                account.status ? 'Online' : 'Offline',
-                              ),
-                              leading: FutureBuilder(
-                                future: AccountController.getAccountImageByName(account.image),
-                                builder: (context, snapshotImage) {
-                                  if (snapshotImage.connectionState == ConnectionState.waiting) {
-                                    return const CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: Colors.transparent,
-                                      child: CircularProgressIndicator(
-                                        color: Color.fromARGB(255, 123, 118, 155),
-                                      ),
-                                    );
-                                  }
-                                  return CircleAvatar(
+                                  onTap: () => Future.delayed(const Duration(seconds: 0), () => AppUtils.switchScreen(ChatPage(account: account), context)),
+                                ),
+                                PopupMenuItem(
+                                  child: const Text(
+                                    'Delete friend',
+                                  ),
+                                  onTap: () => controller.deleteFriend(account.id!),
+                                ),
+                              ],
+                            ),
+                            title: Text(
+                              account.userName,
+                            ),
+                            subtitle: Text(
+                              style: const TextStyle(color: Colors.grey),
+                              account.status ? 'Online' : 'Offline',
+                            ),
+                            leading: FutureBuilder(
+                              future: AccountController.getAccountImageByName(account.image),
+                              builder: (context, snapshotImage) {
+                                if (snapshotImage.connectionState == ConnectionState.waiting) {
+                                  return const CircleAvatar(
                                     radius: 30,
-                                    backgroundColor: Colors.deepPurple,
-                                    backgroundImage: NetworkImage(
-                                      snapshotImage.data.toString(),
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 27,
-                                      backgroundColor: Colors.transparent,
-                                      child: Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: CircleAvatar(
-                                          backgroundColor: account.status ? Colors.green : Colors.transparent,
-                                          radius: 7,
-                                        ),
-                                      ),
+                                    backgroundColor: Colors.transparent,
+                                    child: CircularProgressIndicator(
+                                      color: Color.fromARGB(255, 123, 118, 155),
                                     ),
                                   );
-                                },
-                              ),
-                              onTap: () => AppUtils(controller: controller).showAccountInfoDialog(),
+                                }
+                                return CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.deepPurple,
+                                  backgroundImage: NetworkImage(
+                                    snapshotImage.data.toString(),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 27,
+                                    backgroundColor: Colors.transparent,
+                                    child: Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: CircleAvatar(
+                                        backgroundColor: account.status ? Colors.green : Colors.transparent,
+                                        radius: 7,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
+                            onTap: () => AppUtils(controller: AccountController(context: context, account: account)).showAccountInfoDialog(),
                           ),
-                        );
-                      },
-                    ).toList(),
-                  );
-                },
-              );
-            }
-            return Container();
+                        ),
+                      );
+                    },
+                  ).toList(),
+                );
+              },
+            );
           },
         ),
       ),

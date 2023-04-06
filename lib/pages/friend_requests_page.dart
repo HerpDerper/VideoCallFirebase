@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 
-import 'chat_page.dart';
+import '../models/account.dart';
 import '../utils/app_utils.dart';
-import '../controllers/chat_controller.dart';
 import '../controllers/account_controller.dart';
+import '../controllers/friend_request_controller.dart';
 
-class ChannelsPage extends StatefulWidget {
-  const ChannelsPage({super.key, required});
+class FriendRequestsPage extends StatefulWidget {
+  const FriendRequestsPage({super.key});
 
   @override
-  State<ChannelsPage> createState() => ChannelsPageState();
+  State<FriendRequestsPage> createState() => FriendRequestsPageState();
 }
 
-class ChannelsPageState extends State<ChannelsPage> {
+class FriendRequestsPageState extends State<FriendRequestsPage> {
+  late AccountController controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 38, 35, 55),
       body: Center(
         child: StreamBuilder(
-          stream: ChatController.getChats(),
+          stream: FriendRequestController.getFriendRequests(),
           builder: (context, snapshotChats) {
             if (!snapshotChats.hasData) {
               return Container();
@@ -27,7 +29,7 @@ class ChannelsPageState extends State<ChannelsPage> {
             if (snapshotChats.data!.isEmpty) {
               return const Center(
                 child: Text(
-                  'No chats found',
+                  'No new friend requests',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
@@ -43,9 +45,9 @@ class ChannelsPageState extends State<ChannelsPage> {
             }
             return ListView(
               children: snapshotChats.data!.map(
-                (chat) {
+                (friendRequest) {
                   return StreamBuilder(
-                    stream: ChatController.getAccountFromChat(chat),
+                    stream: FriendRequestController.getAccountFromRequest(friendRequest),
                     builder: (context, snapshotAccount) {
                       if (!snapshotAccount.hasData) {
                         return Container();
@@ -62,18 +64,20 @@ class ChannelsPageState extends State<ChannelsPage> {
                               itemBuilder: (context) => [
                                 PopupMenuItem(
                                   child: const Text(
-                                    'Delete chat',
+                                    'Accept',
                                   ),
-                                  onTap: () => ChatController.deleteChat(chat),
+                                  onTap: () => FriendRequestController.acceptFriendRequest(friendRequest),
+                                ),
+                                PopupMenuItem(
+                                  child: const Text(
+                                    'Decline',
+                                  ),
+                                  onTap: () => FriendRequestController.deleteFriendRequest(friendRequest),
                                 ),
                               ],
                             ),
                             title: Text(
                               snapshotAccount.data!.userName,
-                            ),
-                            subtitle: Text(
-                              style: const TextStyle(color: Colors.grey),
-                              snapshotAccount.data!.status ? 'Online' : 'Offline',
                             ),
                             leading: FutureBuilder(
                               future: AccountController.getAccountImageByName(snapshotAccount.data!.image),
@@ -93,21 +97,10 @@ class ChannelsPageState extends State<ChannelsPage> {
                                   backgroundImage: NetworkImage(
                                     snapshotImage.data.toString(),
                                   ),
-                                  child: CircleAvatar(
-                                    radius: 27,
-                                    backgroundColor: Colors.transparent,
-                                    child: Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: CircleAvatar(
-                                        backgroundColor: snapshotAccount.data!.status ? Colors.green : Colors.transparent,
-                                        radius: 7,
-                                      ),
-                                    ),
-                                  ),
                                 );
                               },
                             ),
-                            onTap: () => AppUtils.switchScreen(ChatPage(account: snapshotAccount.data!), context),
+                            onTap: () => AppUtils(controller: AccountController(context: context, account: snapshotAccount.data)).showAccountInfoDialog(),
                           ),
                         ),
                       );

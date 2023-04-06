@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,6 +29,19 @@ class AccountController {
   }
 
   Future<String> getAccountImage() => FirebaseUtils.storage.ref().child(account!.image).getDownloadURL();
+
+  Stream<List<Account>> getFriends() {
+    FirebaseUtils.setCollection('Accounts');
+    StreamController<List<Account>> streamController = StreamController.broadcast();
+    List<Account> friendsList = [];
+    for (String friendId in account!.friends) {
+      AccountController.getAccountById(friendId).then((account) {
+        friendsList.add(account);
+        streamController.sink.add(friendsList);
+      });
+    }
+    return streamController.stream;
+  }
 
   Stream<List<Account>> searchAccounts(String userName) {
     FirebaseUtils.setCollection('Accounts');
@@ -122,7 +136,7 @@ class AccountController {
     friendAccount.friends.remove(FirebaseUtils.auth.currentUser!.uid);
     account!.friends.remove(friendId);
     FirebaseUtils.collection.doc(friendId).set(friendAccount.toJson());
-    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(friendAccount.toJson());
+    FirebaseUtils.collection.doc(FirebaseUtils.auth.currentUser!.uid).set(account!.toJson());
   }
 
   void signIn(String email, String password) async {
