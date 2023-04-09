@@ -7,9 +7,9 @@ import 'account_controller.dart';
 import '../utils/firebase_utils.dart';
 
 class ChatController {
-  static void createChat(List<String> accounts) {
+  static void createChat(List<String> accounts, String meetingId) {
     FirebaseUtils.setCollection('Chats');
-    FirebaseUtils.collection.add(Chat(accounts: accounts, lastMessageTime: DateTime.now()).toJson());
+    FirebaseUtils.collection.add(Chat(accounts: accounts, meetingId: meetingId, lastMessageTime: DateTime.now()).toJson());
   }
 
   static void updateChat(String chatId, Message message) {

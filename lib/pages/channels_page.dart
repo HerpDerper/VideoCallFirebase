@@ -23,7 +23,16 @@ class ChannelsPageState extends State<ChannelsPage> {
           stream: ChatController.getChats(),
           builder: (context, snapshotChats) {
             if (!snapshotChats.hasData) {
-              return Container();
+              return const Center(
+                child: Text(
+                  'No chats found',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white,
+                  ),
+                ),
+              );
             }
             if (snapshotChats.data!.isEmpty) {
               return const Center(
@@ -48,7 +57,6 @@ class ChannelsPageState extends State<ChannelsPage> {
                   if (!chat.accounts.contains(FirebaseUtils.auth.currentUser!.uid)) {
                     return Container();
                   }
-
                   return StreamBuilder(
                     stream: ChatController.getAccountFromChat(chat),
                     builder: (context, snapshotAccount) {

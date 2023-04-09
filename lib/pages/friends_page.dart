@@ -25,7 +25,12 @@ class FriendsPageState extends State<FriendsPage> {
         AppUtils.showInfoMessage('No users found', context);
         return;
       }
-      AppUtils(controller: AccountController(context: context, account: Account.fromSnapshot(value.docs.first))).showFriendAddDialog();
+      Account newFriendAccount = Account.fromSnapshot(value.docs.first);
+      if (controller.account!.friends.contains(newFriendAccount.id)) {
+        AppUtils.showInfoMessage('Current user is already in your friends list', context);
+        return;
+      }
+      AppUtils(controller: AccountController(context: context, account: newFriendAccount)).showFriendAddDialog();
     });
   }
 
@@ -81,6 +86,18 @@ class FriendsPageState extends State<FriendsPage> {
               stream: controller.getFriends(),
               builder: (context, snapshotFriends) {
                 if (!snapshotFriends.hasData) {
+                  return const Center(
+                    child: Text(
+                      'No friends found',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                }
+                if (snapshotFriends.data!.isEmpty) {
                   return const Center(
                     child: Text(
                       'No friends found',

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/chat.dart';
 import '../models/account.dart';
 import '../models/message.dart';
 import '../utils/app_utils.dart';
 import '../components/widgets.dart';
+import '../screens/call_screen.dart';
 import '../utils/firebase_utils.dart';
-import '../screens/video_call_screen.dart';
+import '../utils/video_sdk_utils.dart';
 import '../controllers/chat_controller.dart';
 import '../controllers/account_controller.dart';
 import '../controllers/message_controller.dart';
@@ -22,13 +24,18 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   TextEditingController controllerMessage = TextEditingController();
-  String chatId = '';
+  late Chat chat;
+
+  void _beginCall() {
+    AccountController.getAccountById(FirebaseUtils.auth.currentUser!.uid)
+        .then((account) => AppUtils.switchScreen(CallScreen(meetingId: chat.meetingId, account: account), context));
+  }
 
   void _submitMessage() {
     if (controllerMessage.text.isNotEmpty) {
       Message message = Message(dateSent: DateTime.now(), text: controllerMessage.text, sender: FirebaseUtils.auth.currentUser!.uid);
-      MessageController.createMessage(chatId, message);
-      ChatController.updateChat(chatId, message);
+      MessageController.createMessage(chat.id!, message);
+      ChatController.updateChat(chat.id!, message);
       controllerMessage.clear();
     }
   }
@@ -44,7 +51,7 @@ class ChatPageState extends State<ChatPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 38, 35, 55),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 22, 20, 32),
+        backgroundColor: const Color.fromARGB(255, 13, 12, 17),
         title: Row(
           children: [
             FutureBuilder(
@@ -86,7 +93,7 @@ class ChatPageState extends State<ChatPage> {
               icon: const Icon(
                 Icons.phone,
               ),
-              onPressed: () => AppUtils.switchScreen(VideoScreen(channelName: chatId, userName: widget.account.userName), context),
+              onPressed: () => _beginCall(),
             )
           ],
         ),
@@ -112,10 +119,11 @@ class ChatPageState extends State<ChatPage> {
                         .toList();
                     QueryDocumentSnapshot? data = chatList.isNotEmpty ? chatList.first : null;
                     if (data == null) {
-                      ChatController.createChat([widget.account.id!, FirebaseUtils.auth.currentUser!.uid]);
+                      VideoSDKUtils.createMeeting()
+                          .then((meetingId) => ChatController.createChat([widget.account.id!, FirebaseUtils.auth.currentUser!.uid], meetingId));
                       return Container();
                     }
-                    chatId = data.id;
+                    chat = Chat.fromSnapshot(data);
                     return StreamBuilder(
                       stream: MessageController.getMessages(chatList.first),
                       builder: (context, snapshotMessages) {
@@ -159,12 +167,9 @@ class ChatPageState extends State<ChatPage> {
             color: const Color.fromARGB(255, 38, 35, 55),
             child: Container(
               margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 38, 35, 55),
-                border: Border.all(
-                  color: Colors.indigo,
-                ),
-                borderRadius: BorderRadius.circular(10),
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(255, 38, 35, 55),
+                borderRadius: BorderRadius.all(Radius.circular(50)),
               ),
               child: TextField(
                 controller: controllerMessage,
@@ -173,11 +178,13 @@ class ChatPageState extends State<ChatPage> {
                 ),
                 decoration: InputDecoration(
                   enabledBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(50)),
                     borderSide: BorderSide(
                       color: Colors.white,
                     ),
                   ),
                   focusedBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(50)),
                     borderSide: BorderSide(
                       color: Colors.white,
                     ),
