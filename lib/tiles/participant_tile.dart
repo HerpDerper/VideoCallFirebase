@@ -1,8 +1,8 @@
-import '../models/account.dart';
-import '../controllers/account_controller.dart';
-
 import 'package:flutter/material.dart';
 import 'package:videosdk/videosdk.dart';
+
+import '../models/account.dart';
+import '../controllers/account_controller.dart';
 
 class ParticipantTile extends StatefulWidget {
   final Participant participant;
