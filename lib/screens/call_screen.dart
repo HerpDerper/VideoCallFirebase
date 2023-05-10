@@ -16,7 +16,7 @@ class CallScreen extends StatefulWidget {
 }
 
 class CallScreenState extends State<CallScreen> {
-  late Room room;
+  late Room currentRoom;
   late List<bool> expandableState;
   Map<String, Participant> participants = {};
   bool micEnabled = false;
@@ -24,30 +24,30 @@ class CallScreenState extends State<CallScreen> {
 
   @override
   void initState() {
-    room = VideoSDK.createRoom(
+    currentRoom = VideoSDK.createRoom(
         roomId: widget.meetingId, token: token, displayName: widget.account.userName, micEnabled: micEnabled, camEnabled: camEnabled, defaultCameraIndex: 1);
     _setMeetingEventListener();
-    room.join();
+    currentRoom.join();
     expandableState = List.generate(1, (index) => false);
     super.initState();
   }
 
   void _setMeetingEventListener() {
-    room.on(Events.roomJoined, () => setState(() => participants.putIfAbsent(room.localParticipant.id, () => room.localParticipant)));
-    room.on(Events.participantJoined, (Participant participant) => setState(() => participants.putIfAbsent(participant.id, () => participant)));
-    room.on(Events.participantLeft, (String participantId) {
+    currentRoom.on(Events.roomJoined, () => setState(() => participants[currentRoom.localParticipant.id] = currentRoom.localParticipant));
+    currentRoom.on(Events.participantJoined, (Participant participant) => setState(() => participants[participant.id] = participant));
+    currentRoom.on(Events.participantLeft, (String participantId) {
       if (participants.containsKey(participantId)) {
         setState(() => participants.remove(participantId));
       }
     });
-    room.on(Events.roomLeft, () {
+    currentRoom.on(Events.roomLeft, () {
       participants.clear();
       Navigator.popUntil(context, ModalRoute.withName('/'));
     });
   }
 
   Future<bool> _onWillPop() async {
-    room.leave();
+    currentRoom.leave();
     return true;
   }
 
@@ -88,9 +88,7 @@ class CallScreenState extends State<CallScreen> {
             Expanded(
               child: ListView.builder(
                 itemBuilder: (context, index) {
-                  return Expanded(
-                    child: _flexableItem(width, index),
-                  );
+                  return ParticipantTile(participant: participants.values.elementAt(index), account: widget.account);
                 },
                 itemCount: participants.length,
               ),
@@ -102,7 +100,7 @@ class CallScreenState extends State<CallScreen> {
                 children: [
                   RawMaterialButton(
                     onPressed: () {
-                      micEnabled ? room.muteMic() : room.unmuteMic();
+                      micEnabled ? currentRoom.muteMic() : currentRoom.unmuteMic();
                       setState(() => micEnabled = !micEnabled);
                     },
                     shape: const CircleBorder(),
@@ -116,7 +114,7 @@ class CallScreenState extends State<CallScreen> {
                     ),
                   ),
                   RawMaterialButton(
-                    onPressed: () => room.leave(),
+                    onPressed: () => currentRoom.leave(),
                     shape: const CircleBorder(),
                     elevation: 2,
                     fillColor: Colors.redAccent,
@@ -129,7 +127,7 @@ class CallScreenState extends State<CallScreen> {
                   ),
                   RawMaterialButton(
                     onPressed: () {
-                      camEnabled ? room.disableCam() : room.enableCam();
+                      camEnabled ? currentRoom.disableCam() : currentRoom.enableCam();
                       setState(() => camEnabled = !camEnabled);
                     },
                     shape: const CircleBorder(),

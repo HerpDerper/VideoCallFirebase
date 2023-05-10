@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  int currentIndex = 0;
+  int currentIndex = 3;
   late AccountController controller = AccountController(context: context, account: Account(email: '', userName: '', password: '', birthDate: ''));
   String appBarTitle = 'Chats';
 
@@ -43,6 +43,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    controller.updateStatus(true);
     WidgetsBinding.instance.addObserver(this);
   }
 
